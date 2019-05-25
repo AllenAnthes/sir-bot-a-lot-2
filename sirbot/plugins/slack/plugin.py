@@ -141,12 +141,12 @@ class SlackPlugin:
             pattern=pattern, handler=(handler, configuration), **kwargs
         )
 
-    def on_action(self, action, handler, name="*", wait=True):
+    def on_action(self, callback_id, handler, name="*", wait=True):
         """
         Register handler for an action
 
         Args:
-            action: `callback_id` of the incoming action.
+            callback_id: `callback_id` of the incoming action.
             handler: Handler to call.
             name: Choice name of the action.
             wait: Wait for handler execution before responding to the slack API.
@@ -154,7 +154,44 @@ class SlackPlugin:
         if not asyncio.iscoroutinefunction(handler):
             handler = asyncio.coroutine(handler)
         configuration = {"wait": wait}
-        self.routers["action"].register(action, (handler, configuration), name)
+        self.routers["action"].register(callback_id, (handler, configuration), name)
+
+    def on_block(self, block_id, handler, action_id="*", wait=True):
+        """
+        Register handler for a `block_actions` type action
+
+        Args:
+            block_id: `block_id` of the incoming action.
+            handler: Handler to call.
+            action_id: `action_id` of the incoming action
+            wait: Wait for handler execution before responding to the slack API.
+        """
+
+        if not asyncio.iscoroutinefunction(handler):
+            handler = asyncio.coroutine(handler)
+
+        configuration = {"wait": wait}
+        self.routers["action"].register_block_action(
+            block_id, (handler, configuration), action_id
+        )
+
+    def on_dialog_submission(self, callback_id, handler, wait=True):
+        """
+        Register handler for a `dialog_submission` type action
+
+        Args:
+            callback_id: `callback_id` of the incoming action.
+            handler: Handler to call.
+            wait: Wait for handler execution before responding to the slack API.
+        """
+
+        if not asyncio.iscoroutinefunction(handler):
+            handler = asyncio.coroutine(handler)
+
+        configuration = {"wait": wait}
+        self.routers["action"].register_dialog_submission(
+            callback_id, (handler, configuration)
+        )
 
     async def find_bot_id(self, app):
         rep = await self.api.query(
