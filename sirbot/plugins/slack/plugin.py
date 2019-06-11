@@ -141,12 +141,12 @@ class SlackPlugin:
             pattern=pattern, handler=(handler, configuration), **kwargs
         )
 
-    def on_action(self, callback_id, handler, name="*", wait=True):
+    def on_action(self, action, handler, name="*", wait=True):
         """
         Register handler for an action
 
         Args:
-            callback_id: `callback_id` of the incoming action.
+            action: `callback_id` of the incoming action.
             handler: Handler to call.
             name: Choice name of the action.
             wait: Wait for handler execution before responding to the slack API.
@@ -154,7 +154,7 @@ class SlackPlugin:
         if not asyncio.iscoroutinefunction(handler):
             handler = asyncio.coroutine(handler)
         configuration = {"wait": wait}
-        self.routers["action"].register(callback_id, (handler, configuration), name)
+        self.routers["action"].register(action, (handler, configuration), name)
 
     def on_block(self, block_id, handler, action_id="*", wait=True):
         """
